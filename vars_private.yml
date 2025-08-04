@@ -1,0 +1,5 @@
+# Populate these vars to match your environment
+
+subnet_id:     subnet-1234 # Your subnet ID
+vpc_id:        vpc-1234    # Your VPC ID
+allow_from_ip: 1.2.3.4/32  # Your public IP
