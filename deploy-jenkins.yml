@@ -67,6 +67,13 @@
       ansible.builtin.debug:
         msg: "Instance public IP: {{ ec2.instances[0].public_ip_address }}"
 
+    - name: Write the endpoint IP to the testing dir
+      ansible.builtin.copy:
+        dest: ./terratest/endpoint_test_ip.txt
+        content: "{{ ec2.instances[0].public_ip_address }}"
+      delegate_to: localhost
+
+
     - name: Wait for the instance to Launch
       ansible.builtin.wait_for:
         port: 22
@@ -153,7 +160,7 @@
         timeout: 300
         state: started
 
-    - name: Dig out the initial admin password
+    - name: Dig up the initial admin password
       ansible.builtin.shell: docker exec -t jenkins cat /var/jenkins_home/secrets/initialAdminPassword
       register: admin_pass
     - name: Display password
