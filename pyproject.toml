@@ -20,4 +20,7 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.taskipy.tasks]
+
 lint = "poetry run ansible-lint deploy-jenkins.yml vars.yml vars_private.yml aws_ec2.yml"
+
+test = "cd terratest && go test"
