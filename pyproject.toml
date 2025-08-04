@@ -7,12 +7,17 @@ authors = [
 ]
 license = {text = "MIT"}
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4.0"
 dependencies = [
     "ansible (>=11.8.0,<12.0.0)",
-    "boto3 (>=1.40.1,<2.0.0)"
+    "boto3 (>=1.40.1,<2.0.0)",
+    "ansible-lint (>=25.7.0,<26.0.0)",
+    "taskipy (>=1.14.1,<2.0.0)"
 ]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+lint = "poetry run ansible-lint deploy-jenkins.yml vars.yml vars_private.yml aws_ec2.yml"

@@ -3,7 +3,7 @@
 - name: Launch an instance for Jenkins
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
   vars_files:
     - vars.yml
     - vars_private.yml
@@ -18,7 +18,7 @@
         key_material: "{{ lookup('file', './jenkins-key.pub') }}"
 
     - name: Create a security group
-      amazon.aws.ec2_group:
+      amazon.aws.ec2_security_group:
         name: "{{ sec_group }}"
         description: "Allow SSH and HTTP"
         region: "{{ region }}"
@@ -41,13 +41,13 @@
         vpc_subnet_id: "{{ subnet_id }}"
         security_group: "{{ sec_group }}"
         exact_count: 1
-        wait: yes
+        wait: true
         tags:
           env: test
       register: ec2
 
     - name: Show instance public IP
-      debug:
+      ansible.builtin.debug:
         msg: "Instance public IP: {{ ec2.instances[0].public_ip_address }}"
 
     - name: Wait for the instance to Launch
@@ -66,26 +66,26 @@
   tasks:
 
     - name: Update all packages to the latest version
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
       become: true
 
     - name: Install Docker
-      apt:
+      ansible.builtin.apt:
         name: docker.io
-        state: latest
-        update_cache: yes
+        state: present
+        update_cache: true
       become: true
 
     - name: Fix docker socket permissions for ubuntu user
       ansible.builtin.user:
         name: ubuntu
         groups: docker
-        append: yes
+        append: true
       become: true
 
     - name: Reset ssh connection to apply socket permisions change
-      meta: reset_connection
+      ansible.builtin.meta: reset_connection
 
     - name: Ensure /data exists
       ansible.builtin.file:
@@ -109,9 +109,10 @@
         - jenkins-casc.yml
 
     - name: Build Jenkins image
-      shell: docker build -t jenkins-from-scratch:latest .
+      ansible.builtin.shell: docker build -t jenkins-from-scratch:latest .  # noqa no-changed-when command-instead-of-shell
       register: docker_build
-    - debug: var=docker_build.stdout
+    - name: Debug image build
+      ansible.builtin.debug: var=docker_build.stdout
       when: debug
 
     - name: Run Jenkins container
@@ -135,6 +136,7 @@
         state: started
 
     - name: Dig out the initial admin password
-      shell: docker exec -t jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+      ansible.builtin.shell: docker exec -t jenkins cat /var/jenkins_home/secrets/initialAdminPassword
       register: admin_pass
-    - debug: var=admin_pass.stdout
+    - name: Display password
+      ansible.builtin.debug: var=admin_pass.stdout

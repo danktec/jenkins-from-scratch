@@ -1,9 +1,9 @@
-instance_type:                t2.medium
-region:                       us-east-1
-key_name:                     jenkins-key
-sec_group:                    jenkins-sg
-ami:                          ami-020cba7c55df1f615  # ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20250610
+instance_type: t2.medium
+region: us-east-1
+key_name: jenkins-key
+sec_group: jenkins-sg
+ami: ami-020cba7c55df1f615  # ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20250610
 ansible_ssh_private_key_file: ./jenkins-key
-ansible_host_key_checking:    false
-ansible_ssh_user:             ubuntu
-debug:                        true
+ansible_host_key_checking: false
+ansible_ssh_user: ubuntu
+debug: true
