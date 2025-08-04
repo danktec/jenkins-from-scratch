@@ -1,0 +1,9 @@
+jenkins:
+  systemMessage: "Welcome to jenkins-from-scratch\n\n"
+  globalNodeProperties:
+  - envVars:
+      env:
+      - key: VARIABLE1
+        value: foo
+      - key: VARIABLE2
+        value: bar

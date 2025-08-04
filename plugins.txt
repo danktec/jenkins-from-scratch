@@ -1,0 +1,5 @@
+# plugin_name:plugin_version
+# If you version-lock a plugin here, all its dependencies will be locked
+
+credentials
+configuration-as-code

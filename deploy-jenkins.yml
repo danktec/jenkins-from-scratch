@@ -1,0 +1,140 @@
+---
+
+- name: Launch an instance for Jenkins
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - vars.yml
+    - vars_private.yml
+
+  tasks:
+
+    - name: Create key pair from local key material
+      amazon.aws.ec2_key:
+        name: "{{ key_name }}"
+        region: "{{ region }}"
+        state: present
+        key_material: "{{ lookup('file', './jenkins-key.pub') }}"
+
+    - name: Create a security group
+      amazon.aws.ec2_group:
+        name: "{{ sec_group }}"
+        description: "Allow SSH and HTTP"
+        region: "{{ region }}"
+        vpc_id: "{{ vpc_id }}"
+        rules:
+          - proto: tcp
+            ports:
+              - 22
+              - 8080
+            cidr_ip: "{{ allow_from_ip }}"
+        state: present
+
+    - name: Launch EC2 instance
+      amazon.aws.ec2_instance:
+        name: "jenkins-from-scratch"
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami }}"
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        security_group: "{{ sec_group }}"
+        exact_count: 1
+        wait: yes
+        tags:
+          env: test
+      register: ec2
+
+    - name: Show instance public IP
+      debug:
+        msg: "Instance public IP: {{ ec2.instances[0].public_ip_address }}"
+
+    - name: Wait for the instance to Launch
+      ansible.builtin.wait_for:
+        host: "{{ ec2.instances[0].public_ip_address }}"
+        port: 22
+        timeout: 300
+        state: started
+
+- name: Connect to the instance using dynamic inventory
+  hosts: "all"
+  vars_files:
+    - vars.yml
+    - vars_private.yml
+
+  tasks:
+
+    - name: Update all packages to the latest version
+      apt:
+        upgrade: dist
+      become: true
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: latest
+        update_cache: yes
+      become: true
+
+    - name: Fix docker socket permissions for ubuntu user
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: yes
+      become: true
+
+    - name: Reset ssh connection to apply socket permisions change
+      meta: reset_connection
+
+    - name: Ensure /data exists
+      ansible.builtin.file:
+        path: /data
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+      become: true
+
+    - name: Copy files to remote
+      ansible.builtin.copy:
+        src: ./{{ item }}
+        dest: ~/{{ item }}
+        owner: ubuntu
+        group: ubuntu
+        mode: "0644"
+      with_items:
+        - Dockerfile
+        - plugins.txt
+        - jenkins-casc.yml
+
+    - name: Build Jenkins image
+      shell: docker build -t jenkins-from-scratch:latest .
+      register: docker_build
+    - debug: var=docker_build.stdout
+      when: debug
+
+    - name: Run Jenkins container
+      community.docker.docker_container:
+        name: jenkins
+        image: jenkins-from-scratch:latest
+        expose:
+          - 8080:8080
+        ports:
+          - 8080:8080
+        volumes:
+          - /data/:/var/jenkins_home/
+        env:
+          CASC_JENKINS_CONFIG: /usr/share/jenkins/ref/jenkins-casc.yml
+
+    - name: Wait while the Jenkins container wakes up
+      ansible.builtin.wait_for:
+        host: "{{ ec2.instances[0].public_ip_address }}"
+        port: 8080
+        timeout: 300
+        state: started
+
+    - name: Dig out the initial admin password
+      shell: docker exec -t jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+      register: admin_pass
+    - debug: var=admin_pass.stdout
