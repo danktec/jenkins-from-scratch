@@ -1,0 +1,7 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-1
+
+include_filters:
+  - tag:Name:
+      - 'jenkins-from-scratch'
