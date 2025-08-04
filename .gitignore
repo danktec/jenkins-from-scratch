@@ -3,3 +3,4 @@ jenkins-key.pub
 
 terratest/endpoint_test_ip.txt
 
+.ansible/

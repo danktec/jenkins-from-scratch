@@ -24,7 +24,7 @@
     - name: Get public IP
       ansible.builtin.uri:
         url: http://4.icanhazip.com
-        return_content: yes
+        return_content: true
       register: ip_response
 
     - name: Create key pair from local key material
@@ -71,8 +71,8 @@
       ansible.builtin.copy:
         dest: ./terratest/endpoint_test_ip.txt
         content: "{{ ec2.instances[0].public_ip_address }}"
+        mode: "0644"
       delegate_to: localhost
-
 
     - name: Wait for the instance to Launch
       ansible.builtin.wait_for:
@@ -137,7 +137,8 @@
       ansible.builtin.shell: docker build -t jenkins-from-scratch:latest .  # noqa no-changed-when command-instead-of-shell
       register: docker_build
     - name: Debug image build
-      ansible.builtin.debug: var=docker_build.stdout_lines
+      ansible.builtin.debug:
+        var: docker_build.stdout_lines
       when: debug
 
     - name: Run Jenkins container
@@ -161,7 +162,8 @@
         state: started
 
     - name: Dig up the initial admin password
-      ansible.builtin.shell: docker exec -t jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+      ansible.builtin.shell: docker exec -t jenkins cat /var/jenkins_home/secrets/initialAdminPassword  # noqa no-changed-when command-instead-of-shell
       register: admin_pass
     - name: Display password
-      ansible.builtin.debug: var=admin_pass.stdout
+      ansible.builtin.debug:
+        var: admin_pass.stdout
