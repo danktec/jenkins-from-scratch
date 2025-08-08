@@ -24,3 +24,5 @@ build-backend = "poetry.core.masonry.api"
 lint = "poetry run ansible-lint deploy-jenkins.yml vars.yml aws_ec2.yml"
 
 test = "cd terratest && go test"
+
+deploy = "ansible-playbook deploy-jenkins.yml -i aws_ec2.yml"

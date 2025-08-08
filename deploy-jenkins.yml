@@ -80,8 +80,11 @@
         host: "{{ ec2.instances[0].public_ip_address }}"
         search_regex: OpenSSH
         delay: 3
-        timeout: 600
+        timeout: 300
       delegate_to: localhost
+
+    - name: Refresh dynamic inventory after launching instance
+      ansible.builtin.meta: refresh_inventory
 
 - name: Connect to the instance using dynamic inventory
   hosts: "all"
