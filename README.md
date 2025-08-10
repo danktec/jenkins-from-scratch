@@ -21,12 +21,16 @@ You can use this Jenkins to spawn more for niche services, or bootstrap a datace
 Additionally - Jenkins (in my experience) is a great tool but usually poorly implemented. It's old-school Java, but that doesn't mean managing it has to be a pain. This project handles backups, recovery, rollbacks, rebuilds, plugin versioning, state management issues and all the other headaches that drive many away from using Jenkins. If you need a robust, tried-true, self-hosted, highly flexible & capable job runner, then it's hard to look past Jenkins IMHO.
 
 # Using it
+Install Poetry and resolve project dependencies
+```bash
+brew install poetry
+poetry install
+```
 
 ## Generate a new keypair locally
 This is uploaded to EC2
 ```bash
-ssh-keygen -t rsa -b 4096 -f ./jenkins-key -N ""
-chmod 600 jenkins-key
+poetry run task create-ssh-key
 ```
 
 ## Get the Jenkins password after initial startup
@@ -35,8 +39,13 @@ Ansible will display the initial admin password. This only required the first ti
 ## Deploy it
 Deploys all resources and connects to the instance using the Ansible dymanic inventory plugin
 ```bash
-poetry install
-poetry run ansible-playbook deploy-jenkins.yml -i aws_ec2.yml
+poetry run task deploy
+```
+
+## Testing
+```bash
+poetry run task lint
+poetry run task test
 ```
 
 # Features

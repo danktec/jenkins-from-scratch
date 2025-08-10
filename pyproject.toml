@@ -26,3 +26,5 @@ lint = "poetry run ansible-lint deploy-jenkins.yml vars.yml aws_ec2.yml"
 test = "cd terratest && go test"
 
 deploy = "ansible-playbook deploy-jenkins.yml -i aws_ec2.yml"
+
+create-ssh-key = "ssh-keygen -t rsa -b 4096 -f ./jenkins-key -N '' && chmod 600 jenkins-key"
